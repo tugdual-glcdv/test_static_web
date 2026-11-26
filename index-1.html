@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#17251f">
+  <title>Mon calendrier de l'Avent</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
+    :root { --green:#203d32; --green-light:#315747; --gold:#e7c77b; --cream:#fff8e9; --red:#a94343; }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; font-family:'DM Sans',sans-serif; color:var(--cream);
+      background:radial-gradient(ellipse at 50% 0%,#45634d 0%,transparent 55%),linear-gradient(145deg,#17251f,#263d30 55%,#17251f);
+      overflow-x:hidden;
+    }
+    body::before {
+      content:""; position:fixed; inset:0; pointer-events:none; opacity:.18;
+      background-image:radial-gradient(circle,#fff 1px,transparent 1.5px); background-size:43px 43px;
+      animation:snow-drift 18s linear infinite;
+    }
+    @keyframes snow-drift { from{background-position:0 0} to{background-position:43px 86px} }
+    header { text-align:center; padding:54px 20px 30px; position:relative; z-index:1; }
+    .eyebrow { color:var(--gold); text-transform:uppercase; letter-spacing:4px; font-size:11px; font-weight:700; margin-bottom:14px; }
+    h1 { font-family:'Playfair Display',serif; font-size:clamp(36px,7vw,66px); line-height:1.08; margin:0; color:#fff8e9; text-shadow:0 5px 25px #0005; }
+    header p { color:#e4e9df; margin:16px auto 0; font-size:15px; max-width:500px; line-height:1.6; }
+    .calendar { width:min(1050px,calc(100% - 32px)); margin:25px auto 65px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; position:relative; z-index:1; }
+    .door { position:relative; min-width:0; aspect-ratio:1/1; padding:0; border:2px solid #e7c77b99; border-radius:17px; overflow:hidden; background:#294335; box-shadow:0 8px 20px #0004,inset 0 0 0 1px #fff2; transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease; }
+    button.door { cursor:pointer; }
+    button.door:hover { transform:translateY(-5px) scale(1.025); border-color:var(--gold); box-shadow:0 14px 30px #0006,0 0 20px #e7c77b33; }
+    .door img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .5s ease; }
+    .door:hover img { transform:scale(1.08); }
+    .door::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,#0001 25%,#0008 100%); pointer-events:none; }
+    .door-number { position:absolute; z-index:2; top:10px; left:12px; color:white; font-family:'Playfair Display',serif; font-size:clamp(22px,4vw,36px); font-weight:800; text-shadow:0 2px 8px #0009; }
+    .door-lock { position:absolute; z-index:2; right:12px; bottom:10px; font-size:19px; filter:drop-shadow(0 2px 3px #0008); }
+    .door.locked { cursor:default; filter:saturate(.75); }
+    .door.locked img { filter:brightness(.72); }
+    .door.locked .door-number { color:#fff2cf; }
+    .door.shaking { animation:door-shake .75s ease-in-out; }
+    @keyframes door-shake {
+      0%,100%{transform:translateX(0) rotate(0)} 12%{transform:translateX(-5px) rotate(-2deg)}
+      24%{transform:translateX(5px) rotate(2deg)} 36%{transform:translateX(-4px) rotate(-1.5deg)}
+      48%{transform:translateX(4px) rotate(1.5deg)} 60%{transform:translateX(-2px) rotate(-1deg)}
+      72%{transform:translateX(2px) rotate(1deg)} 84%{transform:translateX(-1px)}
+    }
+    .modal { position:fixed; inset:0; z-index:20; display:flex; align-items:center; justify-content:center; padding:20px; visibility:hidden; opacity:0; overflow:hidden; background:rgba(5,13,10,0); backdrop-filter:blur(0); transition:opacity .8s ease,background 1.4s ease,backdrop-filter 1.4s ease,visibility .8s; }
+    .modal.active { visibility:visible; opacity:1; background:rgba(5,13,10,.91); backdrop-filter:blur(9px); }
+    .modal::before { content:""; position:absolute; width:20px; height:20px; border-radius:50%; background:#fff7d9; opacity:0; box-shadow:0 0 35px 15px #f6d98c; transform:scale(.1); transition:transform 1.2s cubic-bezier(.16,1,.3,1),opacity .8s ease; }
+    .modal.phase-two::before { opacity:.8; transform:scale(9); }
+    .modal.phase-three::before { opacity:0; transform:scale(30); transition-duration:1.1s; }
+    .magic-ring { position:absolute; left:50%; top:50%; width:min(75vw,520px); aspect-ratio:1; border:1px solid #f5d98b00; border-radius:50%; transform:translate(-50%,-50%) scale(.05) rotate(-50deg); opacity:0; pointer-events:none; }
+    .magic-ring.one { border-color:#f5d98b; box-shadow:0 0 18px #f5d98b66,inset 0 0 18px #f5d98b33; }
+    .magic-ring.two { width:min(95vw,660px); border:1px dashed #fff0c9; }
+    .magic-ring.three { width:min(58vw,400px); border:2px solid #fff4d2; }
+    .phase-two .magic-ring.one { animation:ring-awake 2.5s cubic-bezier(.2,.8,.2,1) forwards; }
+    .phase-two .magic-ring.two { animation:ring-awake 3s .2s cubic-bezier(.2,.8,.2,1) forwards; }
+    .phase-two .magic-ring.three { animation:ring-awake 2.2s .35s cubic-bezier(.2,.8,.2,1) forwards; }
+    @keyframes ring-awake {
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.05) rotate(-50deg)}
+      25%{opacity:1} 75%{opacity:.8}
+      100%{opacity:0;transform:translate(-50%,-50%) scale(1.35) rotate(110deg)}
+    }
+    .light-beam { position:absolute; left:50%; top:50%; width:150vmax; height:2px; background:linear-gradient(90deg,transparent,#fff5d2,transparent); transform:translate(-50%,-50%) rotate(0deg) scaleX(0); opacity:0; pointer-events:none; }
+    .phase-two .light-beam { animation:beam-spin 2.8s 1s ease-in-out forwards; }
+    @keyframes beam-spin {
+      0%{opacity:0;transform:translate(-50%,-50%) rotate(0deg) scaleX(0)}
+      30%{opacity:.9}
+      100%{opacity:0;transform:translate(-50%,-50%) rotate(180deg) scaleX(1)}
+    }
+    .suspense { position:absolute; z-index:4; width:min(90%,450px); text-align:center; color:#fff4d3; font-family:'Playfair Display',serif; font-size:clamp(23px,5vw,36px); text-shadow:0 0 25px #f5d98b99; opacity:0; transform:translateY(25px) scale(.85); pointer-events:none; }
+    .active:not(.revealed) .suspense { animation:suspense-in 1.1s .25s ease forwards; }
+    .phase-three .suspense { animation:suspense-out .65s ease forwards!important; }
+    @keyframes suspense-in { to{opacity:1;transform:translateY(0) scale(1)} }
+    @keyframes suspense-out { to{opacity:0;transform:translateY(-20px) scale(1.12)} }
+    .particles { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+    .particle { position:absolute; left:var(--x); top:var(--y); width:var(--size); height:var(--size); border-radius:50%; background:#fff2c3; box-shadow:0 0 12px 3px #f5d98b; opacity:0; animation:particle-fly var(--duration) var(--delay) ease-out forwards; }
+    .particle.star { width:auto; height:auto; background:none; box-shadow:none; color:#ffe9a7; font-size:var(--size); }
+    @keyframes particle-fly {
+      0%{opacity:0;transform:translate(0,0) scale(.2) rotate(0)}
+      15%{opacity:1} 75%{opacity:.9}
+      100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.5) rotate(180deg)}
+    }
+    .modal-content { position:relative; z-index:5; width:min(460px,100%); max-height:min(88vh,800px); overflow-y:auto; background:linear-gradient(145deg,#fffaf0,#f4e8ce); color:#29382e; border:2px solid #e7c77b; border-radius:23px; padding:16px; text-align:center; box-shadow:0 0 0 7px #e7c77b22,0 0 55px #e7c77b66,0 25px 80px #0009; opacity:0; visibility:hidden; clip-path:inset(48% 48% 48% 48% round 50%); transform:perspective(1000px) rotateY(90deg) rotateX(18deg) scale(.5); filter:blur(15px); }
+    .revealed .modal-content { visibility:visible; animation:gift-unfold 1.65s cubic-bezier(.16,1,.3,1) forwards; }
+    @keyframes gift-unfold {
+      0%{opacity:0;clip-path:inset(48% 48% 48% 48% round 50%);transform:perspective(1000px) rotateY(90deg) rotateX(18deg) scale(.5);filter:blur(15px)}
+      28%{opacity:1;clip-path:inset(30% 18% 30% 18% round 35%);transform:perspective(1000px) rotateY(-18deg) rotateX(-5deg) scale(.8);filter:blur(4px)}
+      58%{clip-path:inset(0 0 0 0 round 23px);transform:perspective(1000px) rotateY(8deg) rotateX(2deg) scale(1.04);filter:blur(0)}
+      78%{transform:perspective(1000px) rotateY(-3deg) rotateX(0) scale(.98)}
+      100%{opacity:1;clip-path:inset(0 0 0 0 round 23px);transform:perspective(1000px) rotateY(0) rotateX(0) scale(1);filter:blur(0)}
+    }
+    .modal-image-wrap { overflow:hidden; border-radius:15px; border:1px solid #d9c28e; background:#e9dfca; aspect-ratio:4/3; }
+    .modal-image { display:block; width:100%; height:100%; object-fit:cover; opacity:0; transform:scale(1.2); }
+    .revealed .modal-image { animation:image-arrive 1.1s .75s ease forwards; }
+    @keyframes image-arrive { to{opacity:1;transform:scale(1)} }
+    .modal-day { margin:17px 0 5px; color:#98783d; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; opacity:0; }
+    .revealed .modal-day { animation:text-arrive .7s 1s ease forwards; }
+    .modal-title { margin:0; font-family:'Playfair Display',serif; font-size:clamp(25px,5vw,33px); color:#294535; opacity:0; transform:translateY(15px); }
+    .revealed .modal-title { animation:text-arrive .7s 1.1s ease forwards; }
+    .modal-description { margin:12px 5px 20px; font-size:15px; line-height:1.65; color:#596358; opacity:0; transform:translateY(15px); }
+    .revealed .modal-description { animation:text-arrive .7s 1.2s ease forwards; }
+    @keyframes text-arrive { to{opacity:1;transform:translateY(0)} }
+    .close-button { position:absolute; top:10px; right:10px; z-index:8; width:36px; height:36px; border:0; border-radius:50%; color:white; background:#243b30d9; font-size:23px; line-height:1; cursor:pointer; transition:transform .2s,background .2s; }
+    .close-button:hover { transform:rotate(90deg); background:#a94343; }
+    @media (min-width:760px) { .calendar{grid-template-columns:repeat(6,minmax(0,1fr));gap:20px} }
+    @media (max-width:430px) {
+      .calendar{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:calc(100% - 24px)}
+      header{padding-top:40px} .door{border-radius:13px} .door-number{top:7px;left:9px}
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after{scroll-behavior:auto!important} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">Décembre · La magie de Noël</div>
+    <h1>Mon calendrier de l'Avent</h1>
+    <p>24 petites surprises à découvrir, une par jour...</p>
+  </header>
+
+  <main class="calendar" id="calendar"></main>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Surprise du calendrier">
+    <div class="magic-ring one"></div>
+    <div class="magic-ring two"></div>
+    <div class="magic-ring three"></div>
+    <div class="light-beam"></div>
+    <div class="particles" id="particles"></div>
+    <div class="suspense">Quelque chose de magique se prépare...</div>
+    <div class="modal-content" id="modalContent">
+      <button class="close-button" id="closeButton" aria-label="Fermer">×</button>
+      <div class="modal-image-wrap"><img class="modal-image" id="modalImage" src="" alt=""></div>
+      <div class="modal-day" id="modalDay"></div>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <p class="modal-description" id="modalDescription"></p>
+    </div>
+  </div>
+
+  <script>
+    // Chaque case possède sa propre URL de couverture, modifiable indépendamment.
+    const covers = [
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA=",
+      "https://media.istockphoto.com/id/913805094/fr/vectoriel/vecteur-de-bo%C3%AEte-de-cadeau-rose-dessin-anim%C3%A9.jpg?s=612x612&w=0&k=20&c=S2QvCyJ2eZbjpzg_3PwYlwsPS9UUNgGzcChm7ZSCkDA="
+    ];
+
+    // Seules les cases 1 à 6 ont un contenu. Les cases 7 à 24 sont vides.
+    const contents = {
+      1: {
+        title: "Première surprise !",
+        description: "Bienvenue dans ton calendrier de l'Avent. Une première petite surprise pour commencer la magie de décembre.",
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjmppWKeZyzBMJmwuBQ1GBbroRHQYIaI157dSpOFZ8Ng&s=10"
+      },
+      2: {
+        title: "Une jolie surprise",
+        description: "La magie continue ! Voici une nouvelle petite attention pour illuminer ta journée.",
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjmppWKeZyzBMJmwuBQ1GBbroRHQYIaI157dSpOFZ8Ng&s=10"
+      },
+      3: {
+        title: "Un peu de magie",
+        description: "Une nouvelle journée, une nouvelle surprise. Profite bien de ce petit moment.",
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjmppWKeZyzBMJmwuBQ1GBbroRHQYIaI157dSpOFZ8Ng&s=10"
+      },
+      4: {
+        title: "Une attention pour toi",
+        description: "Parce que décembre est encore plus beau avec quelques surprises au quotidien.",
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjmppWKeZyzBMJmwuBQ1GBbroRHQYIaI157dSpOFZ8Ng&s=10"
+      },
+      5: {
+        title: "La magie grandit",
+        description: "Le compte à rebours continue. Voici une nouvelle surprise à découvrir !",
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjmppWKeZyzBMJmwuBQ1GBbroRHQYIaI157dSpOFZ8Ng&s=10"
+      },
+      6: {
+        title: "Sixième surprise !",
+        description: "Déjà six jours de magie. J'espère que ces petites attentions te font plaisir.",
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjmppWKeZyzBMJmwuBQ1GBbroRHQYIaI157dSpOFZ8Ng&s=10"
+      }
+    };
+
+    const calendar = document.getElementById("calendar");
+    const modal = document.getElementById("modal");
+    const particlesContainer = document.getElementById("particles");
+    const modalImage = document.getElementById("modalImage");
+    const modalDay = document.getElementById("modalDay");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalDescription = document.getElementById("modalDescription");
+    const closeButton = document.getElementById("closeButton");
+
+    let animationTimers = [];
+    let isOpening = false;
+
+    for (let day = 1; day <= 24; day++) {
+      const isUnlocked = Object.hasOwn(contents, day);
+      const door = document.createElement(isUnlocked ? "button" : "div");
+      door.className = isUnlocked ? "door" : "door locked";
+
+      if (isUnlocked) {
+        door.type = "button";
+        door.setAttribute("aria-label", `Ouvrir la case ${day}`);
+      }
+
+      const image = document.createElement("img");
+      image.src = covers[day - 1];
+      image.alt = `Cadeau de la case ${day}`;
+      image.loading = "lazy";
+
+      const number = document.createElement("span");
+      number.className = "door-number";
+      number.textContent = day;
+
+      door.appendChild(image);
+      door.appendChild(number);
+
+      if (!isUnlocked) {
+        const lock = document.createElement("span");
+        lock.className = "door-lock";
+        lock.textContent = "🔒";
+        door.appendChild(lock);
+      } else {
+        door.addEventListener("click", () => openDoor(day));
+      }
+
+      calendar.appendChild(door);
+    }
+
+    function schedule(callback, delay) {
+      const timer = setTimeout(callback, delay);
+      animationTimers.push(timer);
+    }
+
+    function clearAnimationTimers() {
+      animationTimers.forEach(clearTimeout);
+      animationTimers = [];
+    }
+
+    function createParticles() {
+      particlesContainer.innerHTML = "";
+
+      for (let i = 0; i < 75; i++) {
+        const particle = document.createElement("span");
+        const isStar = Math.random() > .65;
+        particle.className = isStar ? "particle star" : "particle";
+        if (isStar) particle.textContent = "✦";
+
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 100 + Math.random() * 380;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance;
+
+        particle.style.setProperty("--x", `${45 + Math.random() * 10}%`);
+        particle.style.setProperty("--y", `${45 + Math.random() * 10}%`);
+        particle.style.setProperty("--dx", `${dx}px`);
+        particle.style.setProperty("--dy", `${dy}px`);
+        particle.style.setProperty("--size", `${3 + Math.random() * 9}px`);
+        particle.style.setProperty("--duration", `${1.5 + Math.random() * 2}s`);
+        particle.style.setProperty("--delay", `${Math.random() * 1.2}s`);
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    function openDoor(day) {
+      if (isOpening) return;
+      const content = contents[day];
+      if (!content) return;
+
+      isOpening = true;
+      clearAnimationTimers();
+
+      modalImage.src = content.image;
+      modalImage.alt = content.title;
+      modalDay.textContent = `Case numéro ${day}`;
+      modalTitle.textContent = content.title;
+      modalDescription.textContent = content.description;
+
+      modal.classList.remove("revealed", "phase-two", "phase-three");
+      modal.classList.add("active");
+
+      const doors = document.querySelectorAll(".door");
+      doors.forEach(door => door.disabled = true);
+
+      const clickedDoor = doors[day - 1];
+      clickedDoor.classList.add("shaking");
+      createParticles();
+
+      // 1. La case frémit et l'obscurité s'installe.
+      schedule(() => {
+        modal.classList.add("phase-two");
+        createParticles();
+      }, 850);
+
+      // 2. Les anneaux et les rayons lumineux se déploient.
+      schedule(() => {
+        modal.classList.add("phase-three");
+        createParticles();
+      }, 3000);
+
+      // 3. La carte se déploie et le contenu apparaît.
+      schedule(() => {
+        modal.classList.add("revealed");
+        createParticles();
+        clickedDoor.classList.remove("shaking");
+      }, 4200);
+
+      schedule(() => {
+        particlesContainer.innerHTML = "";
+        isOpening = false;
+      }, 6000);
+    }
+
+    function closeModal() {
+      clearAnimationTimers();
+      modal.classList.remove("active", "phase-two", "phase-three", "revealed");
+      particlesContainer.innerHTML = "";
+
+      document.querySelectorAll(".door").forEach(door => {
+        door.disabled = false;
+        door.classList.remove("shaking");
+      });
+
+      isOpening = false;
+    }
+
+    closeButton.addEventListener("click", closeModal);
+
+    modal.addEventListener("click", event => {
+      if (event.target === modal) closeModal();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && modal.classList.contains("active")) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
